@@ -2,3 +2,4 @@ tests/sim-*.json
 tests/*.log
 tests/*.png
 .DS_Store
+__pycache__/
