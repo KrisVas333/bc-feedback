@@ -18,8 +18,8 @@ PROGRAMS = {
            "keywords": ["Info Gynėjai", "Klaidas", "Mistė", "Baitas", "Neuronas", "Lekta", "Klavišų Šokis"]},
 }
 
-FIRST = ("Labas! Čia {PROGRAM_NAME} AI asistentas — dirbtinis intelektas, ne žmogus. "
-         "Pokalbis įrašomas grįžtamajam ryšiui, garsas nesaugomas, užtruksim iki trijų minučių. "
+FIRST = ("Labas! Čia {PROGRAM_NAME} AI asistentas, dirbtinis intelektas, ne žmogus. "
+         "Pokalbį užrašau tekstu grįžtamajam ryšiui, garsas nesaugomas, užtruksim iki trijų minučių. "
          "Kelinta šiandien buvo pamoka ir kokia data?")
 
 DATA = {
