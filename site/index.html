@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Kaip sekėsi?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFFFFF;--bg2:#F7F7F5;--ink:#0A0A0A;--red:#D90429;--mute:#5A5A5A;
+  --c1:#E9ECF2;--c2:#FFF4CC;--c3:#DDF5E3;--c4:#FFE0E6;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:22px;line-height:1.5;letter-spacing:.02em;
+  display:flex;flex-direction:column;min-height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-family:"JetBrains Mono",monospace;font-size:15px}
+header .tag{color:var(--red)}
+.dots{display:flex;gap:8px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--c1)}.dots i.on{background:var(--red)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px 16px;gap:24px;text-align:center}
+h1{font-family:"JetBrains Mono",monospace;font-size:clamp(28px,6vw,52px);line-height:1.2;max-width:18ch}
+.say{border:3px solid var(--ink);background:var(--bg);border-radius:4px;font-size:34px;width:72px;height:72px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:900px}
+@media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+.opt{border:3px solid transparent;border-radius:4px;min-height:150px;font-size:clamp(64px,12vw,96px);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .08s}
+.opt span{font-size:18px;font-weight:700;color:var(--ink)}
+.opt:active{transform:scale(.94)}.opt:focus-visible{outline:4px solid var(--red)}
+.opt:nth-child(1){background:var(--c1)}.opt:nth-child(2){background:var(--c2)}.opt:nth-child(3){background:var(--c3)}.opt:nth-child(4){background:var(--c4)}
+.big{background:var(--red);color:#fff;border:0;border-radius:4px;font:700 32px Inter,sans-serif;padding:22px 56px;cursor:pointer;min-width:240px}
+.party{font-size:120px}
+footer{padding:10px 16px 14px;font-size:13px;line-height:1.5;color:var(--mute);text-align:center;background:var(--bg2)}
+footer a{color:var(--mute)}
+.pick{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><span><span class="tag">BrAIn Club</span> <span id="prog"></span></span><span class="dots" id="dots" aria-hidden="true"></span></header>
+<main id="app" aria-live="polite"></main>
+<footer>⚗️ Eksperimentinis prototipas, sukurtas su AI. Gali klysti. Nemokamas. Anonimiškas: jokių vardų. Radote klaidą? Parašykite: <a href="https://krisvas.lt">krisvas.lt</a> · <a href="qr.html">mentoriui</a></footer>
+<script>
+const FN = "https://iiekmeylpppczicrsxho.supabase.co/functions/v1/feedback-vaikai";
+const P = new URLSearchParams(location.search);
+const prog = ["vr","jr"].includes(P.get("p")) ? P.get("p") : null;
+const lesson = /^[0-9A-Za-z-]{1,6}$/.test(P.get("l")||"") ? P.get("l") : null;
+const test = P.get("t") === "1" ? 1 : 0;
+const Q = [
+  {id:"patiko", t:"Kaip tau šiandien patiko?", o:[["😞","Nepatiko"],["😐","Taip sau"],["🙂","Patiko"],["🤩","Labai!"]]},
+  {id:"sunku", t:"Ar buvo sunku?", o:[["😌","Lengva"],["🙂","Truputį"],["😅","Sunkoka"],["🥵","Labai sunku"]]},
+  {id:"jausmas", t:"Kaip dabar jautiesi?", o:[["😴","Pavargęs"],["😐","Ramus"],["😊","Gerai"],["⚡","Pilnas energijos"]]},
+  {id:"dar", t:"Ar nori ateiti kitą kartą?", o:[["👎","Ne"],["🤷","Nežinau"],["👍","Taip"],["🙌","Labai!"]]},
+];
+const app = document.getElementById("app"), dots = document.getElementById("dots");
+let i = 0, ans = [], audio = null;
+function play(id){ try{ if(audio) audio.pause(); audio = new Audio("audio/"+id+".mp3"); audio.play().catch(()=>{}); }catch(e){} }
+function setDots(){ dots.innerHTML = Q.map((_,k)=>`<i class="${k<i?'on':''}"></i>`).join(""); }
+function el(h){ app.innerHTML = h; }
+
+// offline queue: sends are retried on the next load / next child
+function queue(){ try{ return JSON.parse(localStorage.getItem("bcfq")||"[]"); }catch(e){ return []; } }
+function saveQ(q){ try{ localStorage.setItem("bcfq", JSON.stringify(q.slice(-50))); }catch(e){} }
+async function flush(){
+  const q = queue(); const left = [];
+  for(const b of q){ try{ const r = await fetch(FN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)}); if(!r.ok && r.status>=500) left.push(b); }catch(e){ left.push(b); } }
+  saveQ(left);
+}
+function send(b){ saveQ(queue().concat([b])); flush(); }
+
+function picker(){
+  document.getElementById("prog").textContent = "";
+  el(`<h1>Kuri programa?</h1><div class="pick">
+    <a class="big" href="?p=vr${lesson?'&l='+lesson:''}">🥽 VR</a>
+    <a class="big" href="?p=jr${lesson?'&l='+lesson:''}">🛡️ Jr</a></div>`);
+}
+function start(){
+  i = 0; ans = []; setDots();
+  el(`<div class="party">👋</div><h1>Kaip sekėsi?</h1><button class="big" id="go">Pradėti ▶</button>`);
+  document.getElementById("go").onclick = () => { play("start"); setTimeout(()=>ask(), 300); };
+}
+function ask(){
+  setDots(); const q = Q[i];
+  el(`<button class="say" id="say" aria-label="Perklausyti">🔊</button><h1>${q.t}</h1>
+      <div class="grid">${q.o.map((o,k)=>`<button class="opt" data-v="${k+1}" aria-label="${o[1]}">${o[0]}<span>${o[1]}</span></button>`).join("")}</div>`);
+  document.getElementById("say").onclick = () => play(q.id);
+  play(q.id);
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    ans.push({q:q.id, v:Number(b.dataset.v)}); i++;
+    if(i < Q.length) ask(); else done();
+  });
+}
+function done(){
+  setDots();
+  send({p:prog, l:lesson, t:test, a:ans});
+  play("aciu");
+  el(`<div class="party">🎉</div><h1>Ačiū!</h1>`);
+  setTimeout(start, 3500); // shared tablet / headset: ready for the next child
+}
+flush();
+if(!prog) picker(); else { document.getElementById("prog").textContent = prog==="vr" ? "VR" : "Jr"; start(); }
+</script>
+</body>
+</html>

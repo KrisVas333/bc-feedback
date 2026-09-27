@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mentoriaus QR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#FFFFFF;--bg2:#F7F7F5;--ink:#0A0A0A;--red:#D90429;--mute:#5A5A5A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:500 18px/1.5 Inter,system-ui,sans-serif;letter-spacing:.02em;padding:16px;max-width:900px;margin:0 auto}
+h1,h2{font-family:"JetBrains Mono",monospace}h1{font-size:28px;margin:8px 0 16px}h2{font-size:20px;margin-bottom:8px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:20px}
+label{display:flex;flex-direction:column;font-weight:700;gap:4px}
+select,input{font:inherit;padding:10px;border:2px solid var(--ink);border-radius:4px;min-width:140px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--bg2);border-radius:4px;padding:16px;text-align:center}
+.card .qr{display:inline-block;background:#fff;padding:12px;margin:8px 0}
+.card a{color:var(--red);word-break:break-all;font-size:14px}
+.note{font-size:15px;color:var(--mute);margin-top:16px}
+@media print{.row,.note,footer{display:none}}
+footer{margin-top:24px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<h1>Pamokos pabaiga: 2 QR</h1>
+<div class="row">
+  <label>Programa<select id="p"><option value="vr">BrAIn Club VR</option><option value="jr">BrAIn Club Jr</option></select></label>
+  <label>Pamoka nr.<input id="l" inputmode="numeric" maxlength="6" placeholder="3"></label>
+  <label><span><input type="checkbox" id="t"> bandymas (nesiskaito)</span></label>
+</div>
+<div class="cards">
+  <div class="card"><h2>👧 Vaikams: 4 veideliai</h2><div class="qr" id="qk"></div><br><a id="uk" target="_blank"></a></div>
+  <div class="card"><h2>🎙️ Mentoriui: balsu, 3 min.</h2><div class="qr" id="qm"></div><br><a id="um" target="_blank"></a></div>
+</div>
+<p class="note">Vaikų puslapis anonimiškas: be vardų, be balso. Balso pokalbis tik suaugusiems mentoriams (ElevenLabs taisyklės draudžia vaikų balsą). Spausdinti: Cmd/Ctrl + P.</p>
+<footer>⚗️ Eksperimentinis prototipas, sukurtas su AI. Gali klysti. Nemokamas. Radote klaidą? Parašykite: krisvas.lt</footer>
+<script>
+const AGENTS = {vr:"agent_9001m3hecdmbf7d9njsf8933pe97", jr:"agent_1801m3hech1yfvt96dkja6gvrghg"};
+const base = location.href.replace(/qr\.html.*$/,"").replace(/\?.*$/,"");
+function draw(){
+  const p = document.getElementById("p").value, l = document.getElementById("l").value.replace(/[^0-9A-Za-z-]/g,"").slice(0,6);
+  const t = document.getElementById("t").checked;
+  const kid = base + "?p=" + p + (l ? "&l=" + l : "") + (t ? "&t=1" : "");
+  const men = "https://elevenlabs.io/app/talk-to?agent_id=" + AGENTS[p];
+  for (const [id, url, a] of [["qk", kid, "uk"], ["qm", men, "um"]]) {
+    const box = document.getElementById(id); box.innerHTML = "";
+    try { new QRCode(box, {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M}); } catch(e) { box.textContent = "QR biblioteka neužsikrovė"; }
+    const el = document.getElementById(a); el.href = url; el.textContent = url;
+  }
+}
+["p","l","t"].forEach(id => document.getElementById(id).addEventListener("input", draw));
+draw();
+</script>
+</body>
+</html>
