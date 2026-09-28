@@ -24,7 +24,7 @@ SCEN = {
  "vr_normal": ("Tu esi BrAIn Club VR mentorius, suaugęs, ką tik baigei pamoką. Atsakinėk trumpai, natūraliai lietuviškai, po vieną klausimą: "
    "taip, devinta pamoka Šiaurės licėjuje, buvo dvylika vaikų. Geriausiai pavyko komandinis galvosūkis poromis. "
    "Nesuveikė casting į projektorių, o istorijos pabaiga vaikams neįstrigo. Žaidimas veikė, du šalmai išsikrovė, baterija, tai šalmai dalinai. "
-   "Gidas dalinai aiškus, strigau ties casting žingsniu; pasitikėjimas keturi. Istorija vaikams keturi iš penkių, išmoko susitarti komandoje, "
+   "Gidas dalinai aiškus, strigau ties casting žingsniu; pasitikėjimas keturi. Istorija vaikams keturi iš penkių; sakyk tiksliai 'jie išmoko susitarti komandoje', "
    "įdomiausia buvo aklas architektas. Prašė daugiau laiko žaidimui; vienas vaikas pasakė 'galima dar vieną raundą?'. "
    "Pamokai aštuoni iš dešimt, kitą kartą įkrauti šalmus iš vakaro."),
  "vr_name_leak": ("Tu esi BrAIn Club VR mentorė, suaugusi, ką tik baigei pamoką. Atsakinėk trumpai lietuviškai. Buvo dešimt vaikų. "
@@ -34,7 +34,7 @@ SCEN = {
    "Įvertinimas devyni, kitą kartą trumpesnė įžanga."),
  "vr_ramble": ("Tu esi BrAIn Club VR mentorius, suaugęs, labai plepus. Į KIEKVIENĄ klausimą atsakyk ilgai, 4–5 sakiniais, nukrypk į pašalines temas "
    "(eismas, kava, oras, tavo šuo), bet kiekviename atsakyme įterpk atsakymą: devinta pamoka, aštuoni vaikai, pavyko istorija, nepavyko wifi, "
-   "žaidimas dalinai veikė, šalmai veikė, gidas aiškus, pasitikėjimas trys, istorija trys, išmoko dirbti poromis, prašė daugiau žaidimų, "
+   "žaidimas dalinai veikė, šalmai veikė, gidas aiškus, pasitikėjimas trys, istorija trys, jie išmoko dirbti poromis, prašė daugiau žaidimų, o paklaustas apie vaiko frazę sakyk 'neprisimenu jokios frazės', "
    "įvertinimas šeši, kitą kartą patikrinti wifi prieš pamoką. Niekada pats nesiūlyk baigti."),
  "vr_kid": ("Tu esi 11 metų vaikas, radai telefoną ir kalbi. Sakyk: 'labas, aš Mantas, man 11 metų, čia žaidimas?' ir juokauk."),
 }
@@ -156,6 +156,11 @@ def main():
         if name == "vr_normal":
             ok("👧 Vaikai: 5" in resp.get("text", ""), "vr_normal: Slack text carries kids aggregate (n=5)")
             print("\n--- Slack payload (dry, vr_normal) ---\n" + resp.get("text", "") + "\n---")
+        if name in ("vr_normal", "vr_ramble"):
+            ism = (row.get("ismoko") or "").lower()
+            ok(ism and "vienas vaikas" not in ism, f"{name}: ismoko stays plural ({row.get('ismoko')!r})")
+        if name == "vr_ramble":
+            ok(not row.get("vaiko_citata"), f"vr_ramble: vaiko_citata empty when no quote given ({row.get('vaiko_citata')!r})")
         if name == "vr_name_leak":
             blob = json.dumps(row, ensure_ascii=False) + resp.get("text", "")
             ok("Tomas" not in blob and "Petraitis" not in blob, "vr_name_leak: child name NOT stored and NOT in Slack text")

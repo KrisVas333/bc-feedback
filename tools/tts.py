@@ -10,14 +10,14 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / "docs" / "audio" / "vr"
 T = {"start": "Labas! Septyni greiti klausimai apie šiandienos pamoką. Tiesiog spausk paveiksliuką.",
      "q1": "Kiek balų duotum šiandienos pamokai?", "q2": "Kas buvo smagiausia?", "q3": "Kas nepatiko?",
      "q4": "Ką šiandien išmokai?", "q5": "Kur tai panaudosi?", "q6": "Ko norėtum daugiau?",
-     "q7": "Ar pakviestum draugą?", "kodel": "O kodėl?", "aciu": "Ačiū! Perduok planšetę kitam draugui."}
+     "q7": "Ar pakviestum draugą?", "kodel": "Kodėl?", "aciu": "Ačiū! Kitas draugas, tavo eilė."}
 
 def norm(s):
     s = unicodedata.normalize("NFKD", s.lower())
     return "".join(c for c in s if c.isalnum() or c == " ").strip()
 
 def tts(text):
-    body = {"text": text, "model_id": "eleven_v3", "language_code": "lt", "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}}
+    body = {"text": text, "model_id": "eleven_v3", "language_code": "lt", "voice_settings": {"stability": float(os.environ.get("STAB", "0.5")), "similarity_boost": 0.8, **({"speed": float(os.environ["SPEED"])} if os.environ.get("SPEED") else {})}}
     r = urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{V}?output_format=mp3_44100_64",
                                data=json.dumps(body).encode(), headers={"xi-api-key": K, "content-type": "application/json"})
     return urllib.request.urlopen(r, timeout=120).read()

@@ -49,30 +49,32 @@ FIRST_VR = ("Labas, čia Kraist, dirbtinio intelekto Kris'o balso versija, ne pa
             "Tris minutes paklausiu apie pamoką, garsas nesaugomas. {{pradzia}}")
 # talk-to link may carry ?var_pamoka=&var_vieta=&var_data=&var_bandymas=&var_pradzia= (qr.html builds them)
 VARS_VR = {"pradzia": "Kuri pamoka, kur vedei ir kiek vaikų buvo?", "pamoka": "", "vieta": "", "data": "", "bandymas": "ne"}
-NN = " Be jokių vaikų vardų: vardą pakeisk į 'vienas vaikas'."
+NN = " Jei mentorius pasakė konkretaus vaiko vardą, jį pakeisk į 'vienas vaikas'; kitaip daugiskaitą ('vaikai', 'jie') palik kaip pasakyta."
+ONLY = " Tik tai, ką mentorius pats pasakė, jo žodžiais, trumpai. Nieko nepridėk ir neišvesk. Jei nepasakė, palik tuščią."
 TRI = ["taip", "dalinai", "ne"]
-DATA_VR = {
-    "pamoka": ("string", "Pamokos numeris, tik skaičius (pvz. 3). Jei mentorius patvirtino agento pasakytą pamoką, tas skaičius. Tuščia, jei nežinoma.", None),
-    "vieta": ("string", "Mokykla ar vieta, kur vyko pamoka (pvz. Šiaurės licėjus), iki 6 žodžių. Tuščia, jei nežinoma.", None),
-    "vaiku_sk": ("integer", "Kiek vaikų buvo pamokoje, sveikas skaičius 0–60.", None),
+EMPTY = " Tuščia, jei nepasakė."
+DATA_VR = {k: (t, d + ONLY, e) for k, (t, d, e) in {
+    "pamoka": ("string", "Pamokos numeris, tik skaičius (pvz. 3). Jei mentorius patvirtino agento pasakytą pamoką, tas skaičius.", None),
+    "vieta": ("string", "Mokykla ar vieta, kur vyko pamoka, iki 6 žodžių, VARDININKO linksniu (pvz. „Šiaurės licėjus“, ne „Šiaurės licėjuje“).", None),
+    "vaiku_sk": ("integer", "Kiek vaikų buvo pamokoje, sveikas skaičius 0–60." + EMPTY, None),
     "patiko": ("string", "Kas šiandien pavyko geriausiai, iki 25 žodžių lietuviškai." + NN, None),
-    "nepatiko": ("string", "Kas nesuveikė, iki 25 žodžių lietuviškai; 'nieko', jei niekas." + NN, None),
-    "neistrigo": ("string", "Kas vaikams neįstrigo ar liko nesuprasta, iki 20 žodžių. Tuščia, jei nepaminėta." + NN, None),
-    "zaidimas_veike": ("string", "Ar VR žaidimas veikė: tiksliai viena reikšmė iš: taip, dalinai, ne.", TRI),
-    "salmai_veike": ("string", "Ar šalmai (Quest akiniai) veikė: tiksliai viena reikšmė iš: taip, dalinai, ne.", TRI),
-    "problemu_tipai": ("string", "Problemų tipai, atskirti kableliais, TIK iš sąrašo: šalmas, baterija, žaidimas, casting, wifi, instrukcija, laikas, elgesys, kita. Tuščia, jei problemų nebuvo.", None),
-    "problema": ("string", "Kas tiksliai lūžo, iki 20 žodžių. Tuščia, jei niekas.", None),
-    "instrukcija_aiski": ("string", "Ar mentoriaus gidas (instrukcija) buvo aiškus: tiksliai viena reikšmė iš: taip, dalinai, ne.", TRI),
-    "kur_strigo": ("string", "Kur gide ar pamokos eigoje mentorius strigo, iki 20 žodžių. Tuščia, jei niekur.", None),
-    "pasitikejimas": ("integer", "Kaip mentorius jautėsi vesdamas (pasitikėjimas), sveikas skaičius 1–5.", None),
-    "istorija_vaikams": ("integer", "Kaip vaikams sekėsi su istorija, sveikas skaičius 1–5 (1 labai blogai, 5 puikiai). Jei mentorius nesakė skaičiaus, įvertink iš jo žodžių.", None),
+    "nepatiko": ("string", "Kas nesuveikė, iki 25 žodžių lietuviškai; 'nieko', jei mentorius taip pasakė." + NN, None),
+    "neistrigo": ("string", "Kas vaikams neįstrigo ar liko nesuprasta, iki 20 žodžių." + NN, None),
+    "zaidimas_veike": ("string", "Ar VR žaidimas veikė: tiksliai viena reikšmė iš: taip, dalinai, ne." + EMPTY, TRI),
+    "salmai_veike": ("string", "Ar šalmai (Quest akiniai) veikė: tiksliai viena reikšmė iš: taip, dalinai, ne." + EMPTY, TRI),
+    "problemu_tipai": ("string", "Problemų tipai, atskirti kableliais, TIK iš sąrašo: šalmas, baterija, žaidimas, casting, wifi, instrukcija, laikas, elgesys, kita.", None),
+    "problema": ("string", "Kas tiksliai lūžo, iki 20 žodžių.", None),
+    "instrukcija_aiski": ("string", "Ar mentoriaus gidas (instrukcija) buvo aiškus: tiksliai viena reikšmė iš: taip, dalinai, ne." + EMPTY, TRI),
+    "kur_strigo": ("string", "Kur gide ar pamokos eigoje mentorius strigo, iki 20 žodžių.", None),
+    "pasitikejimas": ("integer", "Kaip mentorius jautėsi vesdamas (pasitikėjimas), sveikas skaičius 1–5." + EMPTY, None),
+    "istorija_vaikams": ("integer", "Kaip vaikams sekėsi su istorija, sveikas skaičius 1–5, kurį pasakė mentorius." + EMPTY, None),
     "ismoko": ("string", "Ką vaikai išmoko, iki 20 žodžių." + NN, None),
     "idomiausia": ("string", "Kas vaikams buvo įdomiausia, iki 15 žodžių." + NN, None),
-    "prase_daugiau": ("string", "Ko vaikai prašė daugiau, iki 15 žodžių. Tuščia, jei nieko." + NN, None),
-    "vaiko_citata": ("string", "Viena vaiko frazė, kurią perpasakojo mentorius, iki 20 žodžių. Vardus pakeisk į 'vienas vaikas'. Tuščia, jei nebuvo.", None),
-    "ivertinimas": ("integer", "Mentoriaus pamokos įvertinimas, sveikas skaičius 1–10.", None),
+    "prase_daugiau": ("string", "Ko vaikai prašė daugiau, iki 15 žodžių." + NN, None),
+    "vaiko_citata": ("string", "Viena vaiko frazė, iki 20 žodžių, tik jei mentorius perpasakojo konkrečią vaiko frazę, kitaip tuščia. Vardą pakeisk į 'vienas vaikas'.", None),
+    "ivertinimas": ("integer", "Mentoriaus pamokos įvertinimas, sveikas skaičius 1–10." + EMPTY, None),
     "pataisymas": ("string", "Vienas konkretus dalykas, kurį mentorius pakeistų kitą kartą, iki 25 žodžių.", None),
-}
+}.items()}
 EVAL_VR = [
     ("ai_disclosed", "Atskleidė AI", "Ar agento pirmas sakinys aiškiai pasakė, kad tai dirbtinio intelekto Kris'o balso versija, ne pats Kris, ir kad garsas nesaugomas? Sėkmė, jei taip."),
     ("no_child_names", "Be vaikų vardų", "Ar agentas NEKLAUSĖ ir NEKARTOJO jokio vaiko vardo ar asmens detalės, o jei mentorius pasakė vardą, priminė sakyti 'vienas vaikas'? Sėkmė, jei taip."),
@@ -113,7 +115,7 @@ def config(prog, p, webhook_id=None):
             "asr": {"quality": "high", "provider": "scribe_realtime", "keywords": p["keywords"]},
             "turn": {"turn_timeout": 8, "silence_end_call_timeout": 30},
             "tts": {"model_id": "eleven_v3_conversational", "voice_id": VOICE, "stability": 0.55, "speed": 1.0, "similarity_boost": 0.8},
-            "conversation": {"max_duration_seconds": 300 if v2 else 240},
+            "conversation": {"max_duration_seconds": 300 if v2 else 240, "file_input": {"enabled": False}},
             "agent": {
                 "language": "lt",
                 "first_message": FIRST_VR if v2 else FIRST.replace("{PROGRAM_NAME}", p["PROGRAM_NAME"]),

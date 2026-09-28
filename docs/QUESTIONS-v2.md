@@ -1,4 +1,4 @@
-# BC VR feedback v2 — klausimai (Kris'o sąrašas → ≤3 min.)
+# BC VR feedback v2 · klausimai (Kris'o sąrašas → ≤3 min.)
 
 Principai: After-Action Review (kas turėjo įvykti · kas įvyko · kodėl · ką keičiam) + Dublino Fireflies modelis. Vienas posūkis = vienas klausimas, sujungiant artimus. Agentas neklausia to, kas jau pasakyta. Data = pokalbio laikas (neklausiama). Tikslas 2–3 min., kietas limitas 5 min.
 
@@ -17,7 +17,7 @@ Principai: After-Action Review (kas turėjo įvykti · kas įvyko · kodėl · k
 | ✓ | „Ačiū, perduosiu Kris'ui ir Gabrieliui. Gero vakaro!" → end_call | | |
 
 **Pridėta virš Kris'o sąrašo (kodėl):** `pasitikejimas` 1–5 (mentoriaus patirtis, tai tikslas; Dublino modelis) · `vaiko_citata` (gyvas balsas be vardo) · `pataisymas` = vienas konkretus veiksmas (AAR „ką keičiam", kitaip grįžtamasis ryšys neįgyvendinamas).
-**Taisyklės:** jokių vaikų vardų (agentas perrašo „vienas vaikas") · jei kalba vaikas → mandagiai baigia · jei atsakymas trumpas, 1 patikslinimas, ne daugiau · po 4:30 praleidžia likusius ir klausia tik #7.
+**Taisyklės:** jokių vaikų vardų (agentas perrašo „vienas vaikas") · jei kalba vaikas → mandagiai baigia · jei atsakymas trumpas, 1 patikslinimas, ne daugiau · po 4:00 praleidžia likusius ir klausia tik #7.
 
 ## 👧 Vaikų puslapis (3–6 kl., BE balso įrašo, tik paspaudimai; klausimus skaito Kraist 🔊)
 
