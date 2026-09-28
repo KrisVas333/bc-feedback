@@ -1,0 +1,19 @@
+{
+ "_readme": "BC VR lesson goals shown to kids on screen 4 ('Ką šiandien išmokai?'). id = [a-z0-9_], max 24 chars. todo:true = placeholder, Gabrielius/Kris to replace with the real lesson goals.",
+ "vr": {
+  "1": {"title": "Tapk Viberiu", "todo": false, "source": "wiki content/bc-vr-learning-outcomes (L1 verified Aug 19)",
+        "goals": [{"id": "saugus_salmas", "t": "Saugiai naudotis VR šalmu", "i": "🥽"},
+                  {"id": "viberio_priesaika", "t": "Viberio priesaiką", "i": "✋"},
+                  {"id": "komandos_taisykles", "t": "Rūpintis savo komanda", "i": "🤝"}]},
+  "2": {"title": "TODO", "todo": true, "goals": [{"id": "l2_tikslas_1", "t": "TODO tikslas 1", "i": "💡"}, {"id": "l2_tikslas_2", "t": "TODO tikslas 2", "i": "🧠"}, {"id": "l2_tikslas_3", "t": "TODO tikslas 3", "i": "🤝"}]},
+  "3": {"title": "TODO", "todo": true, "goals": [{"id": "l3_tikslas_1", "t": "TODO tikslas 1", "i": "💡"}, {"id": "l3_tikslas_2", "t": "TODO tikslas 2", "i": "🧠"}, {"id": "l3_tikslas_3", "t": "TODO tikslas 3", "i": "🤝"}]},
+  "4": {"title": "TODO", "todo": true, "goals": [{"id": "l4_tikslas_1", "t": "TODO tikslas 1", "i": "💡"}, {"id": "l4_tikslas_2", "t": "TODO tikslas 2", "i": "🧠"}, {"id": "l4_tikslas_3", "t": "TODO tikslas 3", "i": "🤝"}]},
+  "5": {"title": "TODO", "todo": true, "goals": [{"id": "l5_tikslas_1", "t": "TODO tikslas 1", "i": "💡"}, {"id": "l5_tikslas_2", "t": "TODO tikslas 2", "i": "🧠"}, {"id": "l5_tikslas_3", "t": "TODO tikslas 3", "i": "🤝"}]},
+  "6": {"title": "TODO", "todo": true, "goals": [{"id": "l6_tikslas_1", "t": "TODO tikslas 1", "i": "💡"}, {"id": "l6_tikslas_2", "t": "TODO tikslas 2", "i": "🧠"}, {"id": "l6_tikslas_3", "t": "TODO tikslas 3", "i": "🤝"}]},
+  "7": {"title": "Kubai kartu", "todo": true, "source": "wiki projects/brainclub-vr (WebXR co-op puzzle, draft, not yet taught)",
+        "goals": [{"id": "susitarti_komandoje", "t": "Susitarti su komanda", "i": "🗣️"},
+                  {"id": "erdvinis_mastymas", "t": "Sukti ir dėlioti formas galvoje", "i": "🧊"},
+                  {"id": "aiskiai_paaiskinti", "t": "Aiškiai paaiškinti draugui", "i": "👂"}]}
+ },
+ "kita": {"id": "kita", "t": "Kažką kita", "i": "❓"}
+}

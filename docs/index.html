@@ -9,29 +9,37 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#FFFFFF;--bg2:#F7F7F5;--ink:#0A0A0A;--red:#D90429;--mute:#5A5A5A;
-  --c1:#E9ECF2;--c2:#FFF4CC;--c3:#DDF5E3;--c4:#FFE0E6;}
+  --c1:#E9ECF2;--c2:#FFF4CC;--c3:#DDF5E3;--c4:#FFE0E6;--c5:#E3ECFF;--c6:#F1E6FF;--c7:#FFEBD9;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:22px;line-height:1.5;letter-spacing:.02em;
   display:flex;flex-direction:column;min-height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-family:"JetBrains Mono",monospace;font-size:15px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-family:"JetBrains Mono",monospace;font-size:15px;gap:12px}
 header .tag{color:var(--red)}
-.dots{display:flex;gap:8px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--c1)}.dots i.on{background:var(--red)}
-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px 16px;gap:24px;text-align:center}
-h1{font-family:"JetBrains Mono",monospace;font-size:clamp(28px,6vw,52px);line-height:1.2;max-width:18ch}
-.say{border:3px solid var(--ink);background:var(--bg);border-radius:4px;font-size:34px;width:72px;height:72px;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:900px}
-@media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
-.opt{border:3px solid transparent;border-radius:4px;min-height:150px;font-size:clamp(64px,12vw,96px);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .08s}
-.opt span{font-size:18px;font-weight:700;color:var(--ink)}
+.dots{display:flex;gap:8px;flex-wrap:wrap}.dots i{width:14px;height:14px;border-radius:50%;background:var(--c1)}.dots i.on{background:var(--red)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px 16px;gap:20px;text-align:center}
+h1{font-family:"JetBrains Mono",monospace;font-size:clamp(26px,5.5vw,48px);line-height:1.2;max-width:20ch}
+.bar{display:flex;gap:12px;align-items:center}
+.say,.back{border:3px solid var(--ink);background:var(--bg);border-radius:4px;font-size:30px;width:68px;height:68px;cursor:pointer;color:var(--ink)}
+.back{font-size:26px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:1000px}
+.grid.n3{grid-template-columns:repeat(3,1fr);max-width:820px}
+.grid.n5{grid-template-columns:repeat(5,1fr)}
+.grid.scale{grid-template-columns:repeat(5,1fr);max-width:900px;gap:10px}
+@media (max-width:560px){.grid,.grid.n5{grid-template-columns:repeat(2,1fr)}.grid.n3{grid-template-columns:repeat(3,1fr)}.grid.scale{grid-template-columns:repeat(5,1fr);gap:8px}}
+@media (min-width:1100px) and (max-height:800px){.grid.scale{grid-template-columns:repeat(10,1fr);max-width:1200px}}
+.opt{border:3px solid transparent;border-radius:4px;min-height:132px;font-size:clamp(52px,10vw,80px);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .08s;color:var(--ink);padding:8px 6px}
+.opt span{font-size:18px;font-weight:700;line-height:1.25}
+.scale .opt{min-height:96px;font-size:clamp(34px,7vw,48px)}
+.scale .opt span{font-family:"JetBrains Mono",monospace;font-size:22px}
 .opt:active{transform:scale(.94)}.opt:focus-visible{outline:4px solid var(--red)}
-.opt:nth-child(1){background:var(--c1)}.opt:nth-child(2){background:var(--c2)}.opt:nth-child(3){background:var(--c3)}.opt:nth-child(4){background:var(--c4)}
-.big{background:var(--red);color:#fff;border:0;border-radius:4px;font:700 32px Inter,sans-serif;padding:22px 56px;cursor:pointer;min-width:240px}
+.opt.k1{background:var(--c1)}.opt.k2{background:var(--c2)}.opt.k3{background:var(--c3)}.opt.k4{background:var(--c4)}.opt.k5{background:var(--c5)}.opt.k6{background:var(--c6)}.opt.k7{background:var(--c7)}
+.opt.sel{border-color:var(--red)}
+.big{background:var(--red);color:#fff;border:0;border-radius:4px;font:700 32px Inter,sans-serif;padding:22px 56px;cursor:pointer;min-width:240px;text-decoration:none;display:inline-block}
 .party{font-size:120px}
 footer{padding:10px 16px 14px;font-size:13px;line-height:1.5;color:var(--mute);text-align:center;background:var(--bg2)}
 footer a{color:var(--mute)}
 .pick{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-.hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -44,21 +52,20 @@ const P = new URLSearchParams(location.search);
 const prog = ["vr","jr"].includes(P.get("p")) ? P.get("p") : null;
 const lesson = /^[0-9A-Za-z-]{1,6}$/.test(P.get("l")||"") ? P.get("l") : null;
 const test = P.get("t") === "1" ? 1 : 0;
-const Q = [
-  {id:"patiko", t:"Kaip tau šiandien patiko?", o:[["😞","Nepatiko"],["😐","Taip sau"],["🙂","Patiko"],["🤩","Labai!"]]},
-  {id:"sunku", t:"Ar buvo sunku?", o:[["😌","Lengva"],["🙂","Truputį"],["😅","Sunkoka"],["🥵","Labai sunku"]]},
-  {id:"jausmas", t:"Kaip dabar jautiesi?", o:[["😴","Pavargęs"],["😐","Ramus"],["😊","Gerai"],["⚡","Pilnas energijos"]]},
-  {id:"dar", t:"Ar nori ateiti kitą kartą?", o:[["👎","Ne"],["🤷","Nežinau"],["👍","Taip"],["🙌","Labai!"]]},
-];
-const app = document.getElementById("app"), dots = document.getElementById("dots");
-let i = 0, ans = [], audio = null;
-function play(id){ try{ if(audio) audio.pause(); audio = new Audio("audio/"+id+".mp3"); audio.play().catch(()=>{}); }catch(e){} }
-function setDots(){ dots.innerHTML = Q.map((_,k)=>`<i class="${k<i?'on':''}"></i>`).join(""); }
-function el(h){ app.innerHTML = h; }
+// set by the adult mentor on qr.html; the child is never asked
+const vieta = /^[\p{L}\p{N} .,"„“\-]{1,60}$/u.test(P.get("vieta")||"") ? P.get("vieta") : null;
+const today = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const dataParam = /^20\d\d-[01]\d-[0-3]\d$/.test(P.get("data")||"") ? P.get("data") : null;
 
-// offline queue: sends are retried on the next load / next child
+const app = document.getElementById("app"), dots = document.getElementById("dots");
+let audio = null;
+function play(src){ try{ if(audio) audio.pause(); audio = new Audio(src); audio.play().catch(()=>{}); }catch(e){} }
+function el(h){ app.innerHTML = h; }
+function setDots(n, done){ dots.innerHTML = Array.from({length:n},(_,k)=>`<i class="${k<done?'on':''}"></i>`).join(""); }
+
+// offline queue: unsent answers are retried on the next child / next load
 function queue(){ try{ return JSON.parse(localStorage.getItem("bcfq")||"[]"); }catch(e){ return []; } }
-function saveQ(q){ try{ localStorage.setItem("bcfq", JSON.stringify(q.slice(-50))); }catch(e){} }
+function saveQ(q){ try{ localStorage.setItem("bcfq", JSON.stringify(q.slice(-80))); }catch(e){} }
 async function flush(){
   const q = queue(); const left = [];
   for(const b of q){ try{ const r = await fetch(FN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)}); if(!r.ok && r.status>=500) left.push(b); }catch(e){ left.push(b); } }
@@ -67,36 +74,114 @@ async function flush(){
 function send(b){ saveQ(queue().concat([b])); flush(); }
 
 function picker(){
-  document.getElementById("prog").textContent = "";
   el(`<h1>Kuri programa?</h1><div class="pick">
     <a class="big" href="?p=vr${lesson?'&l='+lesson:''}">🥽 VR</a>
     <a class="big" href="?p=jr${lesson?'&l='+lesson:''}">🛡️ Jr</a></div>`);
 }
-function start(){
-  i = 0; ans = []; setDots();
+
+/* ---------------- BC Jr (1–2 kl.): 4 faces, unchanged v1 ---------------- */
+const JR = [
+  {id:"patiko", t:"Kaip tau šiandien patiko?", o:[["😞","Nepatiko"],["😐","Taip sau"],["🙂","Patiko"],["🤩","Labai!"]]},
+  {id:"sunku", t:"Ar buvo sunku?", o:[["😌","Lengva"],["🙂","Truputį"],["😅","Sunkoka"],["🥵","Labai sunku"]]},
+  {id:"jausmas", t:"Kaip dabar jautiesi?", o:[["😴","Pavargęs"],["😐","Ramus"],["😊","Gerai"],["⚡","Pilnas energijos"]]},
+  {id:"dar", t:"Ar nori ateiti kitą kartą?", o:[["👎","Ne"],["🤷","Nežinau"],["👍","Taip"],["🙌","Labai!"]]},
+];
+let ji = 0, jans = [];
+function jrStart(){
+  ji = 0; jans = []; setDots(JR.length, 0);
   el(`<div class="party">👋</div><h1>Kaip sekėsi?</h1><button class="big" id="go">Pradėti ▶</button>`);
-  document.getElementById("go").onclick = () => { play("start"); setTimeout(()=>ask(), 300); };
+  document.getElementById("go").onclick = () => { play("audio/start.mp3"); setTimeout(jrAsk, 300); };
 }
-function ask(){
-  setDots(); const q = Q[i];
+function jrAsk(){
+  setDots(JR.length, ji); const q = JR[ji];
   el(`<button class="say" id="say" aria-label="Perklausyti">🔊</button><h1>${q.t}</h1>
-      <div class="grid">${q.o.map((o,k)=>`<button class="opt" data-v="${k+1}" aria-label="${o[1]}">${o[0]}<span>${o[1]}</span></button>`).join("")}</div>`);
-  document.getElementById("say").onclick = () => play(q.id);
-  play(q.id);
+      <div class="grid">${q.o.map((o,k)=>`<button class="opt k${k+1}" data-v="${k+1}" aria-label="${o[1]}">${o[0]}<span>${o[1]}</span></button>`).join("")}</div>`);
+  document.getElementById("say").onclick = () => play("audio/"+q.id+".mp3");
+  play("audio/"+q.id+".mp3");
   app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
-    ans.push({q:q.id, v:Number(b.dataset.v)}); i++;
-    if(i < Q.length) ask(); else done();
+    jans.push({q:q.id, v:Number(b.dataset.v)}); ji++;
+    if(ji < JR.length) jrAsk(); else { setDots(JR.length, JR.length); send({p:"jr", l:lesson, t:test, a:jans}); thanks("audio/aciu.mp3", jrStart); }
   });
 }
-function done(){
-  setDots();
-  send({p:prog, l:lesson, t:test, a:ans});
-  play("aciu");
-  el(`<div class="party">🎉</div><h1>Ačiū!</h1>`);
-  setTimeout(start, 3500); // shared tablet / headset: ready for the next child
+
+/* ---------------- BC VR (3–6 kl.): 7 screens, docs/QUESTIONS-v2.md ---------------- */
+const FACES = ["😭","😢","😞","🙁","😐","🙂","😊","😄","😁","🤩"];
+const SCALE_BG = ["k4","k4","k4","k7","k7","k2","k2","k3","k3","k3"];
+const GENERIC_GOALS = [{id:"naujo_apie_vr",t:"Kažką naujo apie VR",i:"🥽"},{id:"dirbti_komandoje",t:"Dirbti komandoje",i:"🤝"},{id:"spresti_uzduotis",t:"Spręsti užduotis",i:"🧩"}];
+let GOALS = GENERIC_GOALS;
+const VR = [
+  {k:"ivertinimas", t:"Kiek balų duotum šiandienos pamokai?", a:"q1", scale:true},
+  {k:"smagiausia", t:"Kas buvo smagiausia?", a:"q2", o:[["istorija","📖","Istorija"],["vr_zaidimas","🥽","VR žaidimas"],["komanda","🤝","Komandos darbas"],["uzduotis","🧩","Užduotis, galvosūkis"],["mentorius","🧑‍🏫","Mentorius"],["kita","❓","Kita"]]},
+  {k:"nepatiko", t:"Kas nepatiko?", a:"q3", o:[["nieko","👍","Nieko, viskas gerai"],["laukti","⏳","Per ilgai laukti"],["per_sunku","😣","Per sunku"],["per_lengva","🥱","Per lengva"],["salmas","🥽","Šalmas nepatogus"],["nesupratau","🤔","Nesupratau"],["kita","❓","Kita"]]},
+  {k:"ismoko", t:"Ką šiandien išmokai?", a:"q4", goals:true},
+  {k:"panaudos", t:"Kur tai panaudosi?", a:"q5", o:[["seimai","🏠","Papasakosiu šeimai"],["namie","🔧","Išbandysiu namie"],["draugui","🫂","Padėsiu draugui"],["mokykloje","🏫","Mokykloje"],["nezinau","🤷","Dar nežinau"]]},
+  {k:"daugiau", t:"Ko norėtum daugiau?", a:"q6", o:[["vr","🥽","Daugiau VR"],["zaidimu","🎮","Daugiau žaidimų"],["istorijos","📖","Daugiau istorijos"],["sunkesniu","🧗","Sunkesnių užduočių"],["laiko","⏰","Daugiau laiko"]]},
+  {k:"rekomenduotu", t:"Ar pakviestum draugą?", a:"q7", o:[["taip","👍","Taip"],["gal","🤔","Gal"],["ne","👎","Ne"]]},
+];
+const KODEL = {
+  taip:[["smagu","😄","Buvo smagu"],["ismokau","💡","Daug išmokau"],["kartu","🤝","Smagu kartu"],["vr","🥽","VR yra kieta"]],
+  gal:[["priklauso","🤔","Priklauso nuo draugo"],["nezinau","🤷","Dar nežinau"],["nuobodoka","😐","Kartais nuobodu"]],
+  ne:[["nuobodu","😴","Buvo nuobodu"],["per_sunku","😣","Per sunku"],["salmas","🥽","Nepatogus šalmas"],["kita","❓","Kita"]],
+};
+let vi = 0, vans = {}, kodelStep = false;
+async function loadGoals(){
+  try{
+    const j = await (await fetch("lessons.json",{cache:"no-cache"})).json();
+    const L = lesson && j.vr && j.vr[lesson];
+    // TODO lessons never show placeholder text to a child: generic goals until Gabrielius fills lessons.json
+    if(L && !L.todo && Array.isArray(L.goals) && L.goals.length) GOALS = L.goals.filter(g=>/^[a-z0-9_]{1,24}$/.test(g.id)).slice(0,5);
+  }catch(e){}
 }
+function vrStart(){
+  vi = 0; vans = {}; kodelStep = false; setDots(VR.length, 0);
+  el(`<div class="party">👋</div><h1>Kaip sekėsi?</h1><div class="bar"><button class="say" id="say" aria-label="Perklausyti">🔊</button><button class="big" id="go">Pradėti ▶</button></div>`);
+  document.getElementById("say").onclick = () => play("audio/vr/start.mp3");
+  document.getElementById("go").onclick = () => vrAsk();
+}
+function cards(list){
+  const n = list.length, cls = n===3 ? "n3" : n===5 ? "n5" : "";
+  return `<div class="grid ${cls}">${list.map(([v,i,t],k)=>`<button class="opt k${(k%7)+1}" data-v="${v}" aria-label="${t}">${i}<span>${t}</span></button>`).join("")}</div>`;
+}
+function vrAsk(){
+  setDots(VR.length, vi);
+  const q = VR[vi];
+  let title = q.t, audioSrc = "audio/vr/"+q.a+".mp3", body;
+  if(kodelStep){ title = "Kodėl?"; audioSrc = "audio/vr/kodel.mp3"; body = cards(KODEL[vans.rekomenduotu]); }
+  else if(q.scale) body = `<div class="grid scale">${FACES.map((f,k)=>`<button class="opt ${SCALE_BG[k]}" data-v="${k+1}" aria-label="${k+1} iš 10">${f}<span>${k+1}</span></button>`).join("")}</div>`;
+  else if(q.goals) body = cards(GOALS.map(g=>[g.id,g.i||"💡",g.t]).concat([["kita","❓","Kažką kita"]]));
+  else body = cards(q.o);
+  const canBack = vi > 0 || kodelStep;
+  el(`<div class="bar">${canBack?'<button class="back" id="back" aria-label="Atgal">←</button>':''}<button class="say" id="say" aria-label="Perklausyti">🔊</button></div><h1>${title}</h1>${body}`);
+  document.getElementById("say").onclick = () => play(audioSrc);
+  if(canBack) document.getElementById("back").onclick = () => {
+    if(kodelStep){ kodelStep = false; delete vans.kodel; } else { vi--; delete vans[VR[vi].k]; if(VR[vi].k==="rekomenduotu") delete vans.kodel; }
+    vrAsk();
+  };
+  play(audioSrc);
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    b.classList.add("sel");
+    const v = b.dataset.v;
+    if(kodelStep){ vans.kodel = v; return setTimeout(vrDone, 150); }
+    vans[q.k] = q.scale ? Number(v) : v;
+    if(q.k === "rekomenduotu"){ kodelStep = true; return setTimeout(vrAsk, 150); }
+    vi++; setTimeout(vrAsk, 150);
+  });
+}
+function vrDone(){
+  setDots(VR.length, VR.length);
+  send({v:2, p:"vr", l:lesson, t:test, vieta, data: dataParam || today(), r:vans});
+  thanks("audio/vr/aciu.mp3", vrStart);
+}
+function thanks(src, next){
+  play(src);
+  el(`<div class="party">🎉</div><h1>Ačiū!</h1>`);
+  setTimeout(next, 3500); // shared tablet / headset: ready for the next child
+}
+
 flush();
-if(!prog) picker(); else { document.getElementById("prog").textContent = prog==="vr" ? "VR" : "Jr"; start(); }
+if(!prog) picker();
+else if(prog === "jr"){ document.getElementById("prog").textContent = "Jr"; jrStart(); }
+else { document.getElementById("prog").textContent = "VR" + (lesson ? " · L"+lesson : ""); loadGoals().then(vrStart); }
 </script>
 </body>
 </html>

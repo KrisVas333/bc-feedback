@@ -29,29 +29,51 @@ footer{margin-top:24px;font-size:13px;color:var(--mute)}
 <div class="row">
   <label>Programa<select id="p"><option value="vr">BrAIn Club VR</option><option value="jr">BrAIn Club Jr</option></select></label>
   <label>Pamoka nr.<input id="l" inputmode="numeric" maxlength="6" placeholder="3"></label>
+  <label>Vieta<select id="v"><option value="Šiaurės licėjus">Šiaurės licėjus</option><option value="">kita…</option></select></label>
+  <label id="vkwrap">Kita vieta<input id="vk" maxlength="60" placeholder="mokykla ar vieta"></label>
+  <label>Data<input id="d" type="date"></label>
   <label><span><input type="checkbox" id="t"> bandymas (nesiskaito)</span></label>
 </div>
 <div class="cards">
-  <div class="card"><h2>👧 Vaikams: 4 veideliai</h2><div class="qr" id="qk"></div><br><a id="uk" target="_blank"></a></div>
+  <div class="card"><h2 id="hk">👧 Vaikams: 7 klausimai, tik paspaudimai</h2><div class="qr" id="qk"></div><br><a id="uk" target="_blank"></a></div>
   <div class="card"><h2>🎙️ Mentoriui: balsu, 3 min.</h2><div class="qr" id="qm"></div><br><a id="um" target="_blank"></a></div>
 </div>
-<p class="note">Vaikų puslapis anonimiškas: be vardų, be balso. Balso pokalbis tik suaugusiems mentoriams (ElevenLabs taisyklės draudžia vaikų balsą). Spausdinti: Cmd/Ctrl + P.</p>
+<p class="note">Vaikų puslapis anonimiškas: be vardų, be balso, be laisvo teksto. Balso pokalbis tik suaugusiems mentoriams (ElevenLabs taisyklės draudžia jaunesniems nei 18). Mentorius kalba su Kraist: tai AI, Kris'o balso klonas, ne pats Kris. Atsakymai keliauja į Slack #bc-feedback (Kris ir Gabrielius). Spausdinti: Cmd/Ctrl + P.</p>
 <footer>⚗️ Eksperimentinis prototipas, sukurtas su AI. Gali klysti. Nemokamas. Radote klaidą? Parašykite: krisvas.lt</footer>
 <script>
 const AGENTS = {vr:"agent_9001m3hecdmbf7d9njsf8933pe97", jr:"agent_1801m3hech1yfvt96dkja6gvrghg"};
+const ORD = ["","pirma","antra","trečia","ketvirta","penkta","šešta","septinta","aštunta","devinta","dešimta"];
 const base = location.href.replace(/qr\.html.*$/,"").replace(/\?.*$/,"");
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2,"0");
+const now = new Date(); $("d").value = now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate());
+const clean = (s) => (s||"").replace(/[^\p{L}\p{N} .,"„“\-]/gu,"").trim().slice(0,60);
 function draw(){
-  const p = document.getElementById("p").value, l = document.getElementById("l").value.replace(/[^0-9A-Za-z-]/g,"").slice(0,6);
-  const t = document.getElementById("t").checked;
-  const kid = base + "?p=" + p + (l ? "&l=" + l : "") + (t ? "&t=1" : "");
-  const men = "https://elevenlabs.io/app/talk-to?agent_id=" + AGENTS[p];
+  const p = $("p").value, l = $("l").value.replace(/[^0-9A-Za-z-]/g,"").slice(0,6);
+  const t = $("t").checked, data = /^\d{4}-\d{2}-\d{2}$/.test($("d").value) ? $("d").value : "";
+  $("vkwrap").style.display = $("v").value ? "none" : "flex";
+  const vieta = clean($("v").value || $("vk").value);
+  const q = new URLSearchParams({p}); if(l) q.set("l", l); if(vieta) q.set("vieta", vieta); if(data) q.set("data", data); if(t) q.set("t","1");
+  const kid = base + "?" + q.toString();
+  const m = new URLSearchParams({agent_id: AGENTS[p]});
+  if(p === "vr"){
+    // ElevenLabs talk-to passes var_* as dynamic variables: the agent confirms instead of asking
+    if(l) m.set("var_pamoka", l); if(vieta) m.set("var_vieta", vieta); if(data) m.set("var_data", data);
+    m.set("var_bandymas", t ? "taip" : "ne");
+    const lw = ORD[Number(l)] ? ORD[Number(l)] + " pamoka" : (l ? "pamoka " + l : "");
+    const pr = [lw, vieta].filter(Boolean).join(", ");
+    if(pr) m.set("var_pradzia", pr.charAt(0).toUpperCase() + pr.slice(1) + ", teisingai? Ir kiek vaikų buvo?");
+  }
+  $("hk").textContent = p === "vr" ? "👧 Vaikams: 7 klausimai, tik paspaudimai" : "👧 Vaikams: 4 veideliai";
+  const men = "https://elevenlabs.io/app/talk-to?" + m.toString();
   for (const [id, url, a] of [["qk", kid, "uk"], ["qm", men, "um"]]) {
-    const box = document.getElementById(id); box.innerHTML = "";
+    const box = $(id); box.innerHTML = "";
     try { new QRCode(box, {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M}); } catch(e) { box.textContent = "QR biblioteka neužsikrovė"; }
-    const el = document.getElementById(a); el.href = url; el.textContent = url;
+    const el = $(a); el.href = url; el.textContent = url;
   }
 }
-["p","l","t"].forEach(id => document.getElementById(id).addEventListener("input", draw));
+["p","l","t","v","vk","d"].forEach(id => $(id).addEventListener("input", draw));
+["p","v","t","d"].forEach(id => $(id).addEventListener("change", draw));
 draw();
 </script>
 </body>
