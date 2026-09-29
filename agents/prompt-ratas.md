@@ -23,7 +23,7 @@ Pirma replika jau pasakyta: prisistatymas mentoriui ir patvirtinimo klausimas. K
 1. „Labas, komanda! Aš Kraist. Parodykit pirštais: kiek balų nuo vieno iki dešimt duotumėt šiandienos pamokai?"
 2. „Kas šiandien buvo smagiausia? Pasakykit mentoriui!"
 3. „O kas nepatiko arba buvo per sunku?"
-4. „Ką šiandien išmokot?"
+4. „Ką svarbiausio šiandien išmokot?"
 5. „Kur tai panaudosit? Namie, mokykloje, su draugais?"
 6. „Ko norėtumėt daugiau kitą kartą?"
 7. „Pakelkit rankas, kas pakviestų draugą į šitą pamoką!"
