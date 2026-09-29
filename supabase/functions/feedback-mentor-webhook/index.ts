@@ -2,8 +2,9 @@
 // Verifies HMAC (ElevenLabs-Signature: t=..,v0=..), accepts only allow-listed agent ids,
 // stores ONLY data-collection fields (no transcript, no summary: the auto-summary leaked a child name in v1 testing, no audio).
 // BC VR = v2 fields (docs/QUESTIONS-v2.md) · BC Jr = v1 fields (unchanged).
+// vr_ratas = "Vaikų ratas" call (mentor relays the class's answers) -> public.feedback_vaikai_ratas, aggregate only.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { kidsRows, mentorMessage, postSlack, PROBLEMOS, secret } from "../_shared/slack.ts";
+import { kidsRows, mentorMessage, postSlack, PROBLEMOS, ratasMessage, secret } from "../_shared/slack.ts";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -48,6 +49,56 @@ function isoDate(dv: unknown, startSecs: unknown): string {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Vilnius" }).format(t); // YYYY-MM-DD
 }
 
+// synthetic test payloads (tests/run.py, conversation_id "test_*") build the Slack text but never post it
+const dryRun = (r: any) => String(r?.conversation_id ?? "").startsWith("test_");
+const num = (v: unknown, lo: number, hi: number) => {
+  const n = Math.round(Number(String(v ?? "").replace(",", ".")) * 10) / 10;
+  return v !== null && v !== "" && Number.isFinite(n) && n >= lo && n <= hi ? n : null;
+};
+/** "9 iš 12" / "9" / "devyni iš dvylikos" (numbers only are kept) -> {kiek:"9 iš 12", n:9} */
+function recommend(v: unknown, total: number | null): { kiek: string | null; n: number | null } {
+  const s = str(v, 40);
+  if (!s) return { kiek: null, n: null };
+  const m = s.match(/(\d{1,2})(?:\s*(?:iš|is|\/)\s*(\d{1,2}))?/i);
+  if (!m) return { kiek: null, n: null };
+  const n = Number(m[1]), of = m[2] ? Number(m[2]) : total;
+  if (n > 60 || (of !== null && (of > 60 || n > of))) return { kiek: null, n: null };
+  return { kiek: of !== null ? `${n} iš ${of}` : String(n), n };
+}
+
+async function ratas(d: any, dc: any, dv: any, base: Record<string, unknown>): Promise<Response> {
+  const v = (k: string) => dc[k]?.value ?? null;
+  const vaiku_sk = int(v("vaiku_sk"), 0, 60) ?? int(dv.vaiku_sk, 0, 60);
+  const rek = recommend(v("rekomenduotu_kiek"), vaiku_sk);
+  const answers = {
+    ivertinimas_vid: num(v("ivertinimas_vid"), 1, 10),
+    smagiausia: str(v("smagiausia"), 400), nepatiko: str(v("nepatiko"), 400), ismoko: str(v("ismoko"), 400),
+    panaudos: str(v("panaudos"), 400), daugiau: str(v("daugiau"), 400),
+    rekomenduotu_kiek: rek.kiek, rekomenduotu_n: rek.n, kodel: str(v("kodel"), 400), vaiko_citata: str(v("vaiko_citata"), 300),
+  };
+  // only a child spoke / a child answered 2+ times / the mentor relayed nothing -> store nothing at all
+  const relayed = v("mentorius_perdave");
+  const kidTurns = int(v("vaiko_replikos"), 0, 999) ?? 0;
+  if (relayed === false || String(relayed).toLowerCase() === "false" || kidTurns >= 2 || Object.values(answers).every((x) => x === null)) {
+    return new Response("empty: nothing stored", { status: 200 });
+  }
+  const row = {
+    ...base, ...answers, vaiku_sk, program: "vr",
+    pamoka: lesson(v("pamoka")) ?? lesson(dv.pamoka),
+    vieta: str(v("vieta"), 60) ?? str(dv.vieta, 60),
+    data: isoDate(dv.data, d.metadata?.start_time_unix_secs), data_text: str(dv.data, 40),
+  };
+  const { data: saved, error } = await sb.from("feedback_vaikai_ratas").upsert(row, { onConflict: "conversation_id" }).select("*").single();
+  if (error) return new Response("db: " + error.message, { status: 500 });
+  let slack = "error", text = "";
+  try {
+    text = ratasMessage(saved);
+    slack = dryRun(saved) ? "dry" : await postSlack(sb, text);
+    await sb.from("feedback_vaikai_ratas").update(slack === "sent" ? { slack, slack_posted_at: new Date().toISOString() } : { slack }).eq("id", saved.id);
+  } catch (e) { console.log("slack build failed", String(e)); }
+  return new Response(saved.is_test ? JSON.stringify({ ok: true, id: saved.id, slack, text }) : "ok", { status: 200 });
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("method", { status: 405 });
   const body = await req.text();
@@ -85,6 +136,8 @@ Deno.serve(async (req) => {
       : null,
     is_test: isTest,
   };
+
+  if (program === "vr_ratas") return await ratas(d, dc, dv, base);
 
   let row: Record<string, unknown>;
   if (program === "vr") {
@@ -126,7 +179,7 @@ Deno.serve(async (req) => {
   try {
     const kids = await kidsRows(sb, "vr", saved.pamoka, saved.data, saved.is_test);
     text = await mentorMessage(saved, kids);
-    slack = await postSlack(sb, text);
+    slack = dryRun(saved) ? "dry" : await postSlack(sb, text);
     if (slack === "sent") {
       const now = new Date().toISOString();
       await sb.from("feedback_mentor").update({ slack: "sent", slack_posted_at: now }).eq("id", saved.id);

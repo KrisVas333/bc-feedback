@@ -1,5 +1,5 @@
 // Token-protected digest + Slack helper for BC feedback (Bearer = private.app_secrets.bc_feedback_digest_token).
-// GET  ?hours=24&test=0|1          -> {since, mentor:[...], vaikai:[...]} rows since now-hours (bin/feedback-digest.py)
+// GET  ?hours=24&test=0|1          -> {since, mentor:[...], vaikai:[...], ratas:[...]} rows since now-hours (bin/feedback-digest.py)
 // GET  ?new=1                      -> {messages:[{kind, text, is_test, mentor_ids, vaikai_ids}]} not yet on Slack (v2 only, test rows included, prefixed 🧪 TESTAS)
 // POST {action:"mark", mentor:[ids], vaikai:[ids]}          -> sets slack_posted_at (after a manual paste)
 // POST {action:"slack", p:"vr", l:"3", data:"YYYY-MM-DD", t:0|1, dry:true|false}
@@ -76,10 +76,12 @@ Deno.serve(async (req) => {
   const since = new Date(Date.now() - hours * 3600e3).toISOString();
   let m = sb.from("feedback_mentor").select("*").gte("ts", since).order("ts");
   let k = sb.from("feedback_vaikai").select("*").gte("ts", since).order("ts");
-  if (!withTest) { m = m.eq("is_test", false); k = k.eq("is_test", false); }
-  const [mr, kr] = await Promise.all([m, k]);
-  if (mr.error || kr.error) return new Response("db", { status: 500 });
+  let rt = sb.from("feedback_vaikai_ratas").select("*").gte("ts", since).order("ts");
+  if (!withTest) { m = m.eq("is_test", false); k = k.eq("is_test", false); rt = rt.eq("is_test", false); }
+  const [mr, kr, rr] = await Promise.all([m, k, rt]);
+  if (mr.error || kr.error || rr.error) return new Response("db", { status: 500 });
   // conversation_id/agent_id are internal: drop before returning
   const mentor = (mr.data ?? []).map(({ conversation_id: _c, agent_id: _a, ...r }) => r);
-  return J({ since, mentor, vaikai: kr.data });
+  const ratas = (rr.data ?? []).map(({ conversation_id: _c, agent_id: _a, ...r }) => r);
+  return J({ since, mentor, vaikai: kr.data, ratas });
 });

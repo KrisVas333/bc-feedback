@@ -25,7 +25,7 @@ footer{margin-top:24px;font-size:13px;color:var(--mute)}
 </style>
 </head>
 <body>
-<h1>Pamokos pabaiga: 2 QR</h1>
+<h1>Pamokos pabaiga: 3 QR</h1>
 <div class="row">
   <label>Programa<select id="p"><option value="vr">BrAIn Club VR</option><option value="jr">BrAIn Club Jr</option></select></label>
   <label>Pamoka nr.<input id="l" inputmode="numeric" maxlength="6" placeholder="3"></label>
@@ -37,8 +37,9 @@ footer{margin-top:24px;font-size:13px;color:var(--mute)}
 <div class="cards">
   <div class="card"><h2 id="hk">👧 Vaikams: 7 klausimai, tik paspaudimai</h2><div class="qr" id="qk"></div><br><a id="uk" target="_blank"></a></div>
   <div class="card"><h2>🎙️ Mentoriui: balsu, 3 min.</h2><div class="qr" id="qm"></div><br><a id="um" target="_blank"></a></div>
+  <div class="card"><h2>📞 Skambutis: Mentorius arba Vaikų ratas</h2><div class="qr" id="qs"></div><br><a id="us" target="_blank"></a></div>
 </div>
-<p class="note"><b>Pirma vaikai paspaudžia, tada mentorius kalba su Kraist.</b> Vaikų puslapis anonimiškas: be vardų, be balso, be laisvo teksto. Balso pokalbis tik suaugusiems mentoriams (ElevenLabs taisyklės draudžia jaunesniems nei 18). Mentorius kalba su Kraist: tai AI, Kris'o balso klonas, ne pats Kris. Atsakymai keliauja į Slack #bc-feedback (Kris ir Gabrielius). Spausdinti: Cmd/Ctrl + P.</p>
+<p class="note"><b>📞 Skambutis</b> = vienas puslapis dviem pokalbiams: „Mentorius" (tu pasakoji) ir „Vaikų ratas" (Kraist garsiai klausia klasę, tu laikai mygtuką ir perduodi grupės atsakymus; vaikai su telefonu nekalba). <b>Pirma vaikai paspaudžia arba vyksta Vaikų ratas, tada mentorius kalba su Kraist.</b> Vaikų puslapis anonimiškas: be vardų, be balso, be laisvo teksto. Balso pokalbis tik suaugusiems mentoriams (ElevenLabs taisyklės draudžia jaunesniems nei 18). Mentorius kalba su Kraist: tai AI, Kris'o balso klonas, ne pats Kris. Atsakymai keliauja į Slack #bc-feedback (Kris ir Gabrielius). Spausdinti: Cmd/Ctrl + P.</p>
 <footer>⚗️ Eksperimentinis prototipas, sukurtas su AI. Gali klysti. Nemokamas. Radote klaidą? Parašykite: krisvas.lt</footer>
 <script>
 const AGENTS = {vr:"agent_9001m3hecdmbf7d9njsf8933pe97", jr:"agent_1801m3hech1yfvt96dkja6gvrghg"};
@@ -64,9 +65,11 @@ function draw(){
     const pr = [lw, vieta].filter(Boolean).join(", ");
     if(pr) m.set("var_pradzia", pr.charAt(0).toUpperCase() + pr.slice(1) + ", teisingai? Ir kiek vaikų buvo?");
   }
+  const sq = new URLSearchParams({p}); if(l) sq.set("l", l); if(vieta) sq.set("vieta", vieta); if(data) sq.set("data", data); if(t) sq.set("t","1");
+  const call = base + "skambutis.html?" + sq.toString();
   $("hk").textContent = p === "vr" ? "👧 Vaikams: 7 klausimai, tik paspaudimai" : "👧 Vaikams: 4 veideliai";
   const men = "https://elevenlabs.io/app/talk-to?" + m.toString();
-  for (const [id, url, a] of [["qk", kid, "uk"], ["qm", men, "um"]]) {
+  for (const [id, url, a] of [["qk", kid, "uk"], ["qm", men, "um"], ["qs", call, "us"]]) {
     const box = $(id); box.innerHTML = "";
     try { new QRCode(box, {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M}); } catch(e) { box.textContent = "QR biblioteka neužsikrovė"; }
     const el = $(a); el.href = url; el.textContent = url;

@@ -34,3 +34,22 @@ Pamoka, data, vieta ateina iš QR (mentorius nustato) → vaiko neklausiama.
 | 7 | „Ar pakviestum draugą? Kodėl?" | rekomenduotum draugui | Taip / Gal / Ne → viena kortelė kodėl |
 
 Sujungta: „mėgstamiausia dalis" + „kas labiausiai patiko" = #2 (vaikui tas pats klausimas). Laisvo teksto nėra (vaikai įrašytų vardus). ~60–90 s vienam vaikui.
+
+## 📞 Vaikų ratas (v3, 2026-09-29 · agentas `BC VR LT · Vaikų ratas`, Kraist balsas)
+
+Mentorius laiko telefoną prieš klasę. Kraist **garsiai** klausia klasę, vaikai atsako **mentoriui**, mentorius laiko mygtuką ir perduoda grupės atsakymą. Vaikai su AI nekalba (ElevenLabs: <18 draudžiama naudotis, <13 visiškai). ≤5 min., kietas limitas 6.
+
+| # | Kraist sako klasei | Laukas (grupės atsakymas mentoriaus žodžiais) |
+|---|---|---|
+| 0 | Mentoriui: „Labas, čia Kraist, dirbtinio intelekto Kris'o balso versija. Aš užduosiu klausimus klasei garsiai, o tu, mentoriau, laikyk mygtuką ir perduok atsakymus. Devinta pamoka, Šiaurės licėjus, dvylika vaikų, teisingai?" | `pamoka` · `vieta` · `vaiku_sk` |
+| 1 | „Labas, komanda! Aš Kraist. Parodykit pirštais: kiek balų nuo vieno iki dešimt duotumėt šiandienos pamokai?" | `ivertinimas_vid` (skaičius) |
+| 2 | „Kas šiandien buvo smagiausia? Pasakykit mentoriui!" | `smagiausia` |
+| 3 | „O kas nepatiko arba buvo per sunku?" | `nepatiko` |
+| 4 | „Ką šiandien išmokot?" | `ismoko` |
+| 5 | „Kur tai panaudosit? Namie, mokykloje, su draugais?" | `panaudos` |
+| 6 | „Ko norėtumėt daugiau kitą kartą?" | `daugiau` |
+| 7 | „Pakelkit rankas, kas pakviestų draugą į šitą pamoką!" | `rekomenduotu_kiek` („9 iš 12") |
+| 8 | „O kodėl? Kas nors vienu sakiniu, mentoriui." | `kodel` · `vaiko_citata` (tik jei mentorius perpasakojo, be vardo) |
+| ✓ | „Ačiū, komanda! Mentoriau, ačiū, perduosiu Kris'ui ir Gabrieliui." → puslapis baigia skambutį | |
+
+**Taisyklės:** vardų neklausia ir nekartoja · jei prabyla vaikas: „Atsakymus perduoda mentorius." (antrą kartą iš eilės: „…Iki!" ir pabaiga) · vaiko pasakyti dalykai neįrašomi · 1 patikslinimas per klausimą · po 250 s tik 7 klausimas ir pabaiga.

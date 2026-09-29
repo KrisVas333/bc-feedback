@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kids-page question audio in the Kraist v2 voice (Kris's clone, eleven_v3, LT) -> docs/audio/vr/*.mp3.
+"""Kids-page question audio in the Kraist v2 voice (Kris's clone, eleven_v4_turbo since 2026-09-28, LT) -> docs/audio/vr/*.mp3.
 eleven_v3 is non-deterministic and sometimes garbles short LT phrases, so every clip is checked with
 ElevenLabs STT (scribe_v1) and regenerated until the transcript matches (max 6 tries).
 Key: ~/.config/elevenlabs/key (never printed). Usage: python3 tools/tts.py [clip ...]"""
@@ -17,7 +17,7 @@ def norm(s):
     return "".join(c for c in s if c.isalnum() or c == " ").strip()
 
 def tts(text):
-    body = {"text": text, "model_id": "eleven_v3", "language_code": "lt", "voice_settings": {"stability": float(os.environ.get("STAB", "0.5")), "similarity_boost": 0.8, **({"speed": float(os.environ["SPEED"])} if os.environ.get("SPEED") else {})}}
+    body = {"text": text, "model_id": "eleven_v4_turbo", "language_code": "lt", "voice_settings": {"stability": float(os.environ.get("STAB", "0.5")), "similarity_boost": 0.8, **({"speed": float(os.environ["SPEED"])} if os.environ.get("SPEED") else {})}}
     r = urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{V}?output_format=mp3_44100_64",
                                data=json.dumps(body).encode(), headers={"xi-api-key": K, "content-type": "application/json"})
     return urllib.request.urlopen(r, timeout=120).read()

@@ -102,6 +102,25 @@ export async function mentorMessage(r: Row, kids: Row[]): Promise<string> {
   return L.join("\n");
 }
 
+/** "Vaikų ratas" call row (mentor relayed the class's answers) → LT mrkdwn text. Aggregate only, no names. */
+export function ratasMessage(r: Row): string {
+  const parts = ["BC VR", r.pamoka ? `L${r.pamoka}` : "L?", r.vieta || "vieta ?", r.data || "data ?"];
+  if (r.vaiku_sk !== null && r.vaiku_sk !== undefined) parts.push(`${r.vaiku_sk} vaikų`);
+  if (r.ivertinimas_vid !== null && r.ivertinimas_vid !== undefined) parts.push(`⭐ ${String(r.ivertinimas_vid).replace(".", ",")}/10`);
+  const L = [`${r.is_test ? "🧪 TESTAS " : ""}👧🎙️ *Vaikų ratas · ${esc(parts.join(" · "))}*`];
+  const line = (emoji: string, label: string, v: unknown) => { if (has(v)) L.push(`${emoji} ${label}: ${esc(v)}`); };
+  line("😄", "Smagiausia", r.smagiausia);
+  line("😕", "Nepatiko", r.nepatiko);
+  line("💡", "Išmoko", r.ismoko);
+  line("🏠", "Panaudos", r.panaudos);
+  line("➕", "Norėtų daugiau", r.daugiau);
+  const rek = [has(r.rekomenduotu_kiek) ? esc(r.rekomenduotu_kiek) : null, has(r.kodel) ? `kodėl: ${esc(r.kodel)}` : null].filter(Boolean);
+  if (rek.length) L.push(`🤝 Pakviestų draugą: ${rek.join(" · ")}`);
+  if (has(r.vaiko_citata)) L.push(`💬 „${esc(r.vaiko_citata)}"`);
+  L.push("_Perdavė mentorius, grupės atsakymai, be vardų._");
+  return L.join("\n");
+}
+
 /** Kids-only aggregate for one lesson (no mentor call). */
 export async function kidsMessage(program: string, pamoka: string | null, data: string | null, isTest: boolean, rows: Row[]): Promise<string> {
   const vieta = rows.find((x) => x.vieta)?.vieta ?? null;

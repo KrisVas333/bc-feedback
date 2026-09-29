@@ -3,7 +3,7 @@
 v2 (2026-09-28): BC VR uses prompt-vr.md + docs/QUESTIONS-v2.md fields; BC Jr keeps the v1 questions.
 Both speak in Kraist v2 (Kris's voice clone). Rollback VR: backup-v1-vr.json.
 Key: ~/.config/elevenlabs/key (never printed). Webhook id: ~/.config/elevenlabs/bc-feedback-webhook.json.
-Usage: python3 build.py [vr|jr ...]   (default both)"""
+Usage: python3 build.py [vr|jr|ratas ...]   (default all three)"""
 import json, os, sys, urllib.request, pathlib
 
 HERE = pathlib.Path(__file__).parent
@@ -12,6 +12,15 @@ API = "https://api.elevenlabs.io/v1/convai"
 VOICE = "UobNtYFTcCUxlYZA6j6J"  # Kraist v2 = Kris's own voice clone (IVC). v1 used AIstė A2 If6gt8kmFRfS5SzLE1Lx
 PROMPT = (HERE / "prompt.md").read_text()          # BC Jr (v1 questions, unchanged)
 PROMPT_VR = (HERE / "prompt-vr.md").read_text()    # BC VR v2
+PROMPT_RATAS = (HERE / "prompt-ratas.md").read_text()  # BC VR "Vaikų ratas" (mentor relays the class's answers)
+# TTS model for ALL agents. Chosen 2026-09-29: eleven_v4 (non-turbo) = most advanced model the agent API accepts for LT
+# (eleven_v3_conversational is superseded). Measured over WebSocket: first audio after text turn ~2.9 s vs ~2.3 s for
+# eleven_v4_turbo (+~0.6 s/turn). Fallback if calls feel slow: set "eleven_v4_turbo" and rerun build.py.
+TTS_MODEL = "eleven_v4"
+# Vaikų ratas needs stricter turn logic (child detection, spoken goodbye before end_call) than the mentor call
+LLM_RATAS = "gpt-4.1"
+# public agents (no signed URL), but only these browser origins may open a call (docs/skambutis.html + ElevenLabs talk-to)
+ALLOW = [{"hostname": "krisvas333.github.io"}, {"hostname": "elevenlabs.io"}]
 WEBHOOK_ID = json.load(open(os.path.expanduser("~/.config/elevenlabs/bc-feedback-webhook.json")))["webhook_id"]
 
 PROGRAMS = {
@@ -21,6 +30,9 @@ PROGRAMS = {
     "jr": {"name": "BC Jr LT · mentorių grįžtamasis ryšys", "PROGRAM_NAME": "BrAIn Club Jr (Info Gynėjai)",
            "PROGRAM_CONTEXT": "6–8 metų vaikai, 1–2 klasė, kompiuterio pagrindai, Klaidas, Mistė, Baitas, Neuronas",
            "keywords": ["Info Gynėjai", "Klaidas", "Mistė", "Baitas", "Neuronas", "Lekta", "Klavišų Šokis"]},
+    "ratas": {"name": "BC VR LT · Vaikų ratas (Kraist)", "PROGRAM_NAME": "BrAIn Club VR",
+              "PROGRAM_CONTEXT": "mentorius perduoda klasės (3–6 kl.) atsakymus",
+              "keywords": ["BrAIn Club", "VR", "Quest", "casting", "Šiaurės licėjus", "Gabrielius", "Kraist", "vidurkis", "rankų", "iš"]},
 }
 
 FIRST = ("Labas! Čia {PROGRAM_NAME} AI asistentas, dirbtinis intelektas, ne žmogus. "
@@ -82,6 +94,34 @@ EVAL_VR = [
     ("under_5_min", "Iki 5 minučių", "Ar pokalbis buvo trumpas ir susikaupęs: agentas nekartojo klausimų, darė ne daugiau kaip vieną patikslinimą per klausimą ir baigė per 8 klausimus (tikslas 2–3 min., ne ilgiau 5 min.)? Sėkmė, jei taip."),
 ]
 
+# ---------- BC VR "Vaikų ratas" (mentor runs the call in front of the class; kids never use ElevenLabs) ----------
+FIRST_RATAS = ("Labas, čia Kraist, dirbtinio intelekto Kris'o balso versija. Aš užduosiu klausimus klasei garsiai, "
+               "o tu, mentoriau, laikyk mygtuką ir perduok atsakymus. {{pradzia}}")
+VARS_RATAS = {"pradzia": "Kuri pamoka, kur ir kiek vaikų?", "pamoka": "", "vieta": "", "data": "", "vaiku_sk": "", "bandymas": "ne"}
+GRP = " Tik tai, ką apie VISĄ GRUPĘ perdavė suaugęs mentorius (trečiu asmeniu: „dauguma“, „keli vaikai“), jo žodžiais, trumpai. Ignoruok viską, ką vaikas pasakė tiesiogiai agentui pirmu asmeniu. Jokių vardų. Jei nepasakė, palik tuščią."
+DATA_RATAS = {
+    "pamoka": ("string", "Pamokos numeris, tik skaičius (pvz. 3), kurį pasakė ar patvirtino mentorius. Tuščia, jei nežinoma.", None),
+    "vieta": ("string", "Mokykla ar vieta, iki 6 žodžių, VARDININKO linksniu (pvz. „Šiaurės licėjus“), kurią pasakė ar patvirtino mentorius. Tuščia, jei nežinoma.", None),
+    "vaiku_sk": ("integer", "Kiek vaikų buvo pamokoje, sveikas skaičius 0–60, kaip pasakė ar patvirtino mentorius. Tuščia, jei nežinoma.", None),
+    "ivertinimas_vid": ("number", "Klasės pamokos įvertinimo vidurkis 1–10, kaip perdavė mentorius (jei pasakė kelis skaičius, jų vidurkis, viena dešimtainė). Tuščia, jei nepasakė.", None),
+    "smagiausia": ("string", "Kas vaikams buvo smagiausia, iki 20 žodžių." + GRP, None),
+    "nepatiko": ("string", "Kas vaikams nepatiko ar buvo per sunku, iki 20 žodžių; 'nieko', jei mentorius taip pasakė." + GRP, None),
+    "ismoko": ("string", "Ką vaikai išmoko, iki 20 žodžių." + GRP, None),
+    "panaudos": ("string", "Kur vaikai tai panaudos, iki 15 žodžių." + GRP, None),
+    "daugiau": ("string", "Ko vaikai norėtų daugiau, iki 15 žodžių." + GRP, None),
+    "rekomenduotu_kiek": ("string", "Kiek vaikų pakviestų draugą, formatu 'X iš Y' (pvz. '9 iš 12'), kaip perdavė mentorius. Jei pasakė tik X, rašyk tik X. Tuščia, jei nepasakė.", None),
+    "kodel": ("string", "Kodėl vaikai pakviestų (ar ne) draugą, iki 20 žodžių." + GRP, None),
+    "vaiko_citata": ("string", "Viena vaiko frazė iki 20 žodžių, TIK jei mentorius ją perpasakojo. Bet kokį vardą pašalink ('vienas vaikas'). Niekada nerašyk to, ką vaikas pasakė tiesiogiai agentui. Tuščia, jei nebuvo.", None),
+    "mentorius_perdave": ("boolean", "true, jei suaugęs mentorius (trečiu asmeniu, be vaiko požymių) perdavė bent vieną grupės atsakymą į klasės klausimus (1–8); false, jei atsakinėjo vaikas (kalbėjo pirmu asmeniu apie save: „aš“, „man“, prisistatė vardu ar amžiumi, kreipėsi „Kraist“) arba niekas neatsakė.", None),
+    "vaiko_replikos": ("integer", "Kiek agento pokalbio replikų pasakė vaikas, kalbėdamas tiesiogiai agentui pirmu asmeniu apie save (prisistatė vardu ar amžiumi, „aš“, „man patiko“, kreipėsi „Kraist“). 0, jei nė vienos.", None),
+}
+EVAL_RATAS = [
+    ("ai_disclosed", "Atskleidė AI", "Ar agento pirmas sakinys aiškiai pasakė, kad tai dirbtinio intelekto Kris'o balso versija ir kad mentorius perduoda atsakymus? Sėkmė, jei taip."),
+    ("no_child_names", "Be vaikų vardų", "Ar agentas NEKLAUSĖ ir NEKARTOJO jokio vaiko vardo, amžiaus ar asmens detalės? Sėkmė, jei taip."),
+    ("child_redirected", "Vaikas nukreiptas", "Jei pokalbyje vaikas kalbėjo tiesiogiai agentui, ar agentas atsakė 'Atsakymus perduoda mentorius' ir nesikalbėjo su vaiku? Sėkmė, jei taip arba jei vaikas nekalbėjo."),
+    ("all_asked", "Visi klausimai", "Ar agentas klasei uždavė visus 8 klausimus (įvertinimas, smagiausia, nepatiko, išmoko, kur panaudos, ko daugiau, ar pakviestų draugą, kodėl), nebent mentorius paprašė baigti anksčiau ar kalbėjo tik vaikas? Sėkmė, jei taip."),
+]
+
 def call(method, url, body=None):
     req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None,
                                  headers={"xi-api-key": KEY, "content-type": "application/json"})
@@ -96,35 +136,49 @@ def dc_item(t, d, enum=None):
 def config(prog, p, webhook_id=None):
     fill = lambda s: s.replace("{{PROGRAM_NAME}}", p["PROGRAM_NAME"]).replace("{{PROGRAM_CONTEXT}}", p["PROGRAM_CONTEXT"])
     v2 = prog == "vr"
-    data = {k: dc_item(*v) for k, v in DATA_VR.items()} if v2 else {k: dc_item(t, d) for k, (t, d) in DATA.items()}
-    ev = EVAL_VR if v2 else EVAL
+    ratas = prog == "ratas"
+    if ratas:
+        data, ev = {k: dc_item(*v) for k, v in DATA_RATAS.items()}, EVAL_RATAS
+    else:
+        data = {k: dc_item(*v) for k, v in DATA_VR.items()} if v2 else {k: dc_item(t, d) for k, (t, d) in DATA.items()}
+        ev = EVAL_VR if v2 else EVAL
     ps = {
         "data_collection": data,
         "evaluation": {"criteria": [{"id": i, "name": n, "type": "prompt", "conversation_goal_prompt": g} for i, n, g in ev]},
         "privacy": {"record_voice": False, "delete_audio": True, "retention_days": 7},
         "call_limits": {"agent_concurrency_limit": 3, "daily_limit": 60},
-        "auth": {"enable_auth": False},
+        "auth": {"enable_auth": False, "allowlist": ALLOW},
         "summary_language": "lt",
     }
     if webhook_id:
         ps["workspace_overrides"] = {"webhooks": {"post_call_webhook_id": webhook_id, "events": ["transcript"], "send_audio": False}}
+    if ratas:
+        # two-step close: the goodbye is a text-only turn (docs/skambutis.html ends the session when it hears it);
+        # end_call is only the fallback on the NEXT turn. gpt-4.1(-mini) otherwise emits a silent end_call (seen in sims).
+        end_desc = ("Baigia pokalbį. Kviesk TIK jei tavo ANKSTESNĖ replika jau buvo atsisveikinimas ('Ačiū, komanda! Mentoriau, ačiū, "
+                    "perduosiu Kris'ui ir Gabrieliui.' arba 'Atsakymus perduoda mentorius. Iki!') ir kažkas vėl kalba, "
+                    "arba jei mentorius paprašė baigti ir tu jau padėkojai.")
+    elif v2:
+        end_desc = ("Baigia pokalbį. Kviesk TIK tame pačiame atsakyme, kuriame JAU parašei atsisveikinimo tekstą (po 7 klausimo: 'Ačiū, perduosiu Kris'ui ir Gabrieliui. Gero vakaro!'; jei kalba vaikas: 'Šis pokalbis skirtas mentoriams, ačiū!'). Niekada nekviesk be teksto.")
+    else:
+        end_desc = "Baigia pokalbį po 6-o klausimo, kai mentorius prašo baigti, arba kai kalba vaikas."
+    first = FIRST_RATAS if ratas else FIRST_VR if v2 else FIRST.replace("{PROGRAM_NAME}", p["PROGRAM_NAME"])
     return {
         "name": p["name"],
-        "tags": ["bc-feedback", "lt", "mentors-only"],
+        "tags": ["bc-feedback", "lt", "mentors-only"] + (["vaiku-ratas"] if ratas else []),
         "conversation_config": {
             "asr": {"quality": "high", "provider": "scribe_realtime", "keywords": p["keywords"]},
-            "turn": {"turn_timeout": 8, "silence_end_call_timeout": 30},
-            "tts": {"model_id": "eleven_v3_conversational", "voice_id": VOICE, "stability": 0.55, "speed": 1.0, "similarity_boost": 0.8},
-            "conversation": {"max_duration_seconds": 300 if v2 else 240, "file_input": {"enabled": False}},
+            # Vaikų ratas: long silences are normal (kids think, mic is muted until the mentor holds the button)
+            "turn": {"turn_timeout": 30, "silence_end_call_timeout": 120} if ratas else {"turn_timeout": 8, "silence_end_call_timeout": 30},
+            "tts": {"model_id": TTS_MODEL, "voice_id": VOICE, "stability": 0.55, "speed": 1.0, "similarity_boost": 0.8},
+            "conversation": {"max_duration_seconds": 360 if ratas else 300 if v2 else 240, "file_input": {"enabled": False}},
             "agent": {
                 "language": "lt",
-                "first_message": FIRST_VR if v2 else FIRST.replace("{PROGRAM_NAME}", p["PROGRAM_NAME"]),
-                "dynamic_variables": {"dynamic_variable_placeholders": VARS_VR if v2 else {}},
-                **({"max_conversation_duration_message": "Laikas baigėsi. Ačiū, perduosiu Kris'ui ir Gabrieliui!"} if v2 else {}),
-                "prompt": {"prompt": PROMPT_VR if v2 else fill(PROMPT), "llm": "gpt-4.1-mini", "temperature": 0.2,
-                           "built_in_tools": {"end_call": {"type": "system", "name": "end_call",
-                               "description": ("Baigia pokalbį. Kviesk TIK tame pačiame atsakyme, kuriame JAU parašei atsisveikinimo tekstą (po 7 klausimo: 'Ačiū, perduosiu Kris'ui ir Gabrieliui. Gero vakaro!'; jei kalba vaikas: 'Šis pokalbis skirtas mentoriams, ačiū!'). Niekada nekviesk be teksto." if v2 else
-                                               "Baigia pokalbį po 6-o klausimo, kai mentorius prašo baigti, arba kai kalba vaikas."),
+                "first_message": first,
+                "dynamic_variables": {"dynamic_variable_placeholders": VARS_RATAS if ratas else VARS_VR if v2 else {}},
+                **({"max_conversation_duration_message": "Laikas baigėsi. Ačiū, perduosiu Kris'ui ir Gabrieliui!"} if (v2 or ratas) else {}),
+                "prompt": {"prompt": PROMPT_RATAS if ratas else PROMPT_VR if v2 else fill(PROMPT), "llm": LLM_RATAS if ratas else "gpt-4.1-mini", "temperature": 0.2,
+                           "built_in_tools": {"end_call": {"type": "system", "name": "end_call", "description": end_desc,
                                "params": {"system_tool_type": "end_call"}}}},
             },
         },
